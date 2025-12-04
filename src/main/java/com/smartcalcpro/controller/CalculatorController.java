@@ -1,6 +1,7 @@
 package com.smartcalcpro.controller;
 
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.time.Period;
 
@@ -10,27 +11,31 @@ import java.time.Period;
 public class CalculatorController {
 
     @GetMapping("/age")
-    public String calculateAge(@RequestParam String dob) {
+    public int calculateAge(@RequestParam String dob) {
         LocalDate birth = LocalDate.parse(dob);
-        Period period = Period.between(birth, LocalDate.now());
-        return period.getYears() + " years, " + period.getMonths() + " months, " + period.getDays() + " days";
+        return Period.between(birth, LocalDate.now()).getYears();
     }
 
     @GetMapping("/experience")
-    public String calculateExperience(@RequestParam String startDate) {
+    public int calculateExperience(@RequestParam String startDate) {
         LocalDate start = LocalDate.parse(startDate);
-        Period period = Period.between(start, LocalDate.now());
-        return period.getYears() + " years, " + period.getMonths() + " months";
+        return Period.between(start, LocalDate.now()).getYears();
     }
 
     @GetMapping("/add")
-    public double add(@RequestParam double a, @RequestParam double b) { return a + b; }
+    public int add(@RequestParam int a, @RequestParam int b) {
+        return a + b;
+    }
 
     @GetMapping("/sub")
-    public double subtract(@RequestParam double a, @RequestParam double b) { return a - b; }
+    public int subtract(@RequestParam int a, @RequestParam int b) {
+        return a - b;
+    }
 
     @GetMapping("/mul")
-    public double multiply(@RequestParam double a, @RequestParam double b) { return a * b; }
+    public int multiply(@RequestParam int a, @RequestParam int b) {
+        return a * b;
+    }
 
     @GetMapping("/div")
     public double divide(@RequestParam double a, @RequestParam double b) {
