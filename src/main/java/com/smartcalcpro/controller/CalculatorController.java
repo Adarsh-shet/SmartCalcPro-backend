@@ -10,18 +10,29 @@ import java.time.Period;
 @CrossOrigin(origins = "*")
 public class CalculatorController {
 
+    // AGE CALCULATOR: returns years, months, days
     @GetMapping("/age")
-    public int calculateAge(@RequestParam String dob) {
+    public String calculateAge(@RequestParam String dob) {
         LocalDate birth = LocalDate.parse(dob);
-        return Period.between(birth, LocalDate.now()).getYears();
+        Period p = Period.between(birth, LocalDate.now());
+
+        return p.getYears() + " years " + p.getMonths() + " months " + p.getDays() + " days";
     }
 
+    // EXPERIENCE CALCULATOR: returns years, months, days
     @GetMapping("/experience")
-    public int calculateExperience(@RequestParam String startDate) {
+    public String calculateExperience(@RequestParam String startDate,
+                                      @RequestParam String endDate) {
+
         LocalDate start = LocalDate.parse(startDate);
-        return Period.between(start, LocalDate.now()).getYears();
+        LocalDate end = LocalDate.parse(endDate);
+
+        Period p = Period.between(start, end);
+
+        return p.getYears() + " years " + p.getMonths() + " months " + p.getDays() + " days";
     }
 
+    // BASIC OPERATIONS
     @GetMapping("/add")
     public int add(@RequestParam int a, @RequestParam int b) {
         return a + b;
