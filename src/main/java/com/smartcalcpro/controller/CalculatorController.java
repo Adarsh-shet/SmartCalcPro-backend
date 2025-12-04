@@ -1,6 +1,7 @@
 package com.smartcalcpro.controller;
 
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.time.Period;
 
@@ -12,21 +13,24 @@ public class CalculatorController {
     @GetMapping("/age")
     public String calculateAge(@RequestParam String dob) {
         LocalDate birth = LocalDate.parse(dob);
-        Period p = Period.between(birth, LocalDate.now());
-        return p.getYears() + " years " + p.getMonths() + " months " + p.getDays() + " days";
+        LocalDate today = LocalDate.now();
+
+        Period diff = Period.between(birth, today);
+
+        return diff.getYears() + " years, " + diff.getMonths() + " months, " + diff.getDays() + " days";
     }
 
     @GetMapping("/experience")
     public String calculateExperience(
             @RequestParam String startDate,
-            @RequestParam(required = false) String endDate
-    ) {
+            @RequestParam(required = false) String endDate) {
 
         LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = (endDate == null || endDate.isEmpty()) ? LocalDate.now() : LocalDate.parse(endDate);
+        LocalDate end = (endDate == null) ? LocalDate.now() : LocalDate.parse(endDate);
 
-        Period p = Period.between(start, end);
-        return p.getYears() + " years " + p.getMonths() + " months " + p.getDays() + " days";
+        Period diff = Period.between(start, end);
+
+        return diff.getYears() + " years, " + diff.getMonths() + " months, " + diff.getDays() + " days";
     }
 
     @GetMapping("/add")
