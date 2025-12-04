@@ -1,6 +1,7 @@
 package com.smartcalcpro.controller;
 
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.time.Period;
 
@@ -9,36 +10,44 @@ import java.time.Period;
 @CrossOrigin(origins = "*")
 public class CalculatorController {
 
+    /** AGE CALCULATOR **/
     @GetMapping("/age")
-    public String calculateAge(@RequestParam String dob) {
+    public AgeResponse calculateAge(@RequestParam String dob) {
         LocalDate birth = LocalDate.parse(dob);
-        Period diff = Period.between(birth, LocalDate.now());
-        return diff.getYears() + " years, " + diff.getMonths() + " months, " + diff.getDays() + " days";
+        LocalDate today = LocalDate.now();
+
+        Period p = Period.between(birth, today);
+
+        return new AgeResponse(p.getYears(), p.getMonths(), p.getDays());
     }
 
+    /** EXPERIENCE CALCULATOR **/
     @GetMapping("/experience")
-    public String calculateExperience(@RequestParam String startDate,
-                                      @RequestParam(required = false) String endDate) {
+    public AgeResponse calculateExperience(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
 
         LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = (endDate == null) ? LocalDate.now() : LocalDate.parse(endDate);
-        Period diff = Period.between(start, end);
+        LocalDate end = LocalDate.parse(endDate);
 
-        return diff.getYears() + " years, " + diff.getMonths() + " months";
+        Period p = Period.between(start, end);
+
+        return new AgeResponse(p.getYears(), p.getMonths(), p.getDays());
     }
 
+    /** GENERAL OPERATIONS **/
     @GetMapping("/add")
-    public int add(@RequestParam int a, @RequestParam int b) {
+    public double add(@RequestParam double a, @RequestParam double b) {
         return a + b;
     }
 
     @GetMapping("/sub")
-    public int subtract(@RequestParam int a, @RequestParam int b) {
+    public double subtract(@RequestParam double a, @RequestParam double b) {
         return a - b;
     }
 
     @GetMapping("/mul")
-    public int multiply(@RequestParam int a, @RequestParam int b) {
+    public double multiply(@RequestParam double a, @RequestParam double b) {
         return a * b;
     }
 
@@ -46,5 +55,30 @@ public class CalculatorController {
     public double divide(@RequestParam double a, @RequestParam double b) {
         if (b == 0) return 0;
         return a / b;
+    }
+
+    /** EMI CALCULATOR **/
+    @GetMapping("/emi")
+    public double calculateEmi(
+            @RequestParam double principal,
+            @RequestParam double rate,
+            @RequestParam double months) {
+
+        double monthlyRate = rate / (12 * 100);
+        return (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+                (Math.pow(1 + monthlyRate, months) - 1);
+    }
+}
+
+/** COMMON RESPONSE FOR AGE + EXPERIENCE **/
+class AgeResponse {
+    public int years;
+    public int months;
+    public int days;
+
+    public AgeResponse(int years, int months, int days) {
+        this.years = years;
+        this.months = months;
+        this.days = days;
     }
 }
