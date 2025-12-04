@@ -1,84 +1,91 @@
 package com.smartcalcpro.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/calc")
 @CrossOrigin(origins = "*")
 public class CalculatorController {
 
-    /** AGE CALCULATOR **/
+    // returns structured JSON { years: X, months: Y, days: Z, formatted: "X years Y months Z days" }
     @GetMapping("/age")
-    public AgeResponse calculateAge(@RequestParam String dob) {
+    public ResponseEntity<Map<String, Object>> calculateAge(@RequestParam String dob) {
         LocalDate birth = LocalDate.parse(dob);
-        LocalDate today = LocalDate.now();
-
-        Period p = Period.between(birth, today);
-
-        return new AgeResponse(p.getYears(), p.getMonths(), p.getDays());
+        Period p = Period.between(birth, LocalDate.now());
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("years", p.getYears());
+        resp.put("months", p.getMonths());
+        resp.put("days", p.getDays());
+        resp.put("formatted", String.format("%d years %d months %d days", p.getYears(), p.getMonths(), p.getDays()));
+        return ResponseEntity.ok(resp);
     }
 
-    /** EXPERIENCE CALCULATOR **/
+    // experience between startDate and endDate (if endDate not provided -> now)
     @GetMapping("/experience")
-    public AgeResponse calculateExperience(
-            @RequestParam String startDate,
-            @RequestParam String endDate) {
-
+    public ResponseEntity<Map<String, Object>> calculateExperience(@RequestParam String startDate,
+                                                                   @RequestParam(required = false) String endDate) {
         LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = LocalDate.parse(endDate);
-
+        LocalDate end = (endDate == null || endDate.isEmpty()) ? LocalDate.now() : LocalDate.parse(endDate);
+        if (end.isBefore(start)) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "endDate must be after startDate");
+            return ResponseEntity.badRequest().body(error);
+        }
         Period p = Period.between(start, end);
-
-        return new AgeResponse(p.getYears(), p.getMonths(), p.getDays());
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("years", p.getYears());
+        resp.put("months", p.getMonths());
+        resp.put("days", p.getDays());
+        resp.put("formatted", String.format("%d years %d months %d days", p.getYears(), p.getMonths(), p.getDays()));
+        return ResponseEntity.ok(resp);
     }
 
-    /** GENERAL OPERATIONS **/
     @GetMapping("/add")
-    public double add(@RequestParam double a, @RequestParam double b) {
-        return a + b;
+    public ResponseEntity<Double> add(@RequestParam double a, @RequestParam double b) {
+        return ResponseEntity.ok(a + b);
     }
 
     @GetMapping("/sub")
-    public double subtract(@RequestParam double a, @RequestParam double b) {
-        return a - b;
+    public ResponseEntity<Double> subtract(@RequestParam double a, @RequestParam double b) {
+        return ResponseEntity.ok(a - b);
     }
 
     @GetMapping("/mul")
-    public double multiply(@RequestParam double a, @RequestParam double b) {
-        return a * b;
+    public ResponseEntity<Double> multiply(@RequestParam double a, @RequestParam double b) {
+        return ResponseEntity.ok(a * b);
     }
 
     @GetMapping("/div")
-    public double divide(@RequestParam double a, @RequestParam double b) {
-        if (b == 0) return 0;
-        return a / b;
+    public ResponseEntity<Double> divide(@RequestParam double a, @RequestParam double b) {
+        if (b == 0) return ResponseEntity.ok(0.0);
+        return ResponseEntity.ok(a / b);
     }
 
-    /** EMI CALCULATOR **/
+    // EMI endpoint: principal, annual rate (percent), months
     @GetMapping("/emi")
-    public double calculateEmi(
-            @RequestParam double principal,
-            @RequestParam double rate,
-            @RequestParam double months) {
-
-        double monthlyRate = rate / (12 * 100);
-        return (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
-                (Math.pow(1 + monthlyRate, months) - 1);
-    }
-}
-
-/** COMMON RESPONSE FOR AGE + EXPERIENCE **/
-class AgeResponse {
-    public int years;
-    public int months;
-    public int days;
-
-    public AgeResponse(int years, int months, int days) {
-        this.years = years;
-        this.months = months;
-        this.days = days;
+    public ResponseEntity<Map<String, Object>> calculateEMI(@RequestParam double principal,
+                                                            @RequestParam double rate,
+                                                            @RequestParam int months) {
+        Map<String, Object> resp = new HashMap<>();
+        double monthlyRate = rate / 12.0 / 100.0;
+        double emi;
+        if (monthlyRate == 0) {
+            emi = principal / months;
+        } else {
+            double pow = Math.pow(1 + monthlyRate, months);
+            emi = (principal * monthlyRate * pow) / (pow - 1);
+        }
+        double totalAmount = emi * months;
+        double totalInterest = totalAmount - principal;
+        resp.put("emi", Math.round(emi * 100.0) / 100.0);
+        resp.put("totalAmount", Math.round(totalAmount * 100.0) / 100.0);
+        resp.put("totalInterest", Math.round(totalInterest * 100.0) / 100.0);
+        return ResponseEntity.ok(resp);
     }
 }
